@@ -1,9 +1,16 @@
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
-import { LayoutDashboard } from "lucide-react";
+import {
+  CircleDollarSign,
+  File,
+  LayoutDashboard,
+  ListCheck,
+} from "lucide-react";
 import { redirect } from "next/navigation";
+import CategoryForm from "./_components/CategoryForm";
 import Description from "./_components/DescriptionForm";
 import ImageForm from "./_components/ImageForm";
+import PriceForm from "./_components/PriceForm";
 import TitleForm from "./_components/TitleForm";
 
 const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
@@ -16,6 +23,12 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
   const course = await db.course.findUniqueOrThrow({
     where: {
       id: params.courseId,
+    },
+  });
+
+  const categories = await db.category.findMany({
+    orderBy: {
+      name: "asc",
     },
   });
 
@@ -63,6 +76,48 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
             courseId={course.id}
           />
           <ImageForm initialData={course} courseId={course.id} />
+          <CategoryForm
+            initialData={course}
+            courseId={course.id}
+            options={categories?.map((cat) => ({
+              label: cat.name,
+              value: cat.id,
+            }))}
+          />
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center gap-x-2">
+              <span className="grid size-8 place-items-center rounded-full bg-blue-100 text-blue-500">
+                <ListCheck size={18} />
+              </span>
+              <h2 className="text-xl">Course chapter</h2>
+            </div>
+
+            <div>TODO: Chapters</div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-x-2">
+              <span className="grid size-8 place-items-center rounded-full bg-blue-100 text-blue-500">
+                <CircleDollarSign size={18} className="" />
+              </span>
+              <h2 className="text-xl">Sell your course</h2>
+            </div>
+
+            <PriceForm initialData={course} courseId={course.id} />
+          </div>
+
+          <div>
+            <div className="flex items-center gap-x-2">
+              <span className="grid size-8 place-items-center rounded-full bg-blue-100 text-blue-500">
+                <File size={18} />
+              </span>
+              <h2 className="text-xl">Resources & Attachments</h2>
+            </div>
+            <ImageForm initialData={course} courseId={course.id} />
+          </div>
         </div>
       </div>
     </div>
