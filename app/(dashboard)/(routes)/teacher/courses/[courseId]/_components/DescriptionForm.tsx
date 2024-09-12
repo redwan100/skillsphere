@@ -69,7 +69,7 @@ const Description = ({ initialData, courseId }: DescriptionProps) => {
             <>
               {" "}
               <Pencil className="mr-2 h-4 w-4" />
-              Edit description
+              Edit desc
             </>
           )}
         </Button>

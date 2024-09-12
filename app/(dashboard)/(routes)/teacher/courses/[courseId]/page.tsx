@@ -7,6 +7,7 @@ import {
   ListCheck,
 } from "lucide-react";
 import { redirect } from "next/navigation";
+import AttachmentForm from "./_components/AttachmentForm";
 import CategoryForm from "./_components/CategoryForm";
 import Description from "./_components/DescriptionForm";
 import ImageForm from "./_components/ImageForm";
@@ -23,6 +24,13 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
   const course = await db.course.findUniqueOrThrow({
     where: {
       id: params.courseId,
+    },
+    include: {
+      attachments: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 
@@ -116,7 +124,7 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
               </span>
               <h2 className="text-xl">Resources & Attachments</h2>
             </div>
-            <ImageForm initialData={course} courseId={course.id} />
+            <AttachmentForm initialData={course} courseId={course.id} />
           </div>
         </div>
       </div>
