@@ -9,6 +9,7 @@ import {
 import { redirect } from "next/navigation";
 import AttachmentForm from "./_components/AttachmentForm";
 import CategoryForm from "./_components/CategoryForm";
+import ChapterForm from "./_components/ChapterForm";
 import Description from "./_components/DescriptionForm";
 import ImageForm from "./_components/ImageForm";
 import PriceForm from "./_components/PriceForm";
@@ -24,8 +25,14 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
   const course = await db.course.findUniqueOrThrow({
     where: {
       id: params.courseId,
+      userId,
     },
     include: {
+      chapters: {
+        orderBy: {
+          position: "asc",
+        },
+      },
       attachments: {
         orderBy: {
           createdAt: "desc",
@@ -50,6 +57,7 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
     course.imgUrl,
     course.price,
     course.categoryId,
+    course.chapters.some((chapter) => chapter.isPublished),
   ];
 
   const totalFields = requiredFields.length;
@@ -103,7 +111,7 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
               <h2 className="text-xl">Course chapter</h2>
             </div>
 
-            <div>TODO: Chapters</div>
+            <ChapterForm initialData={{ ...course }} courseId={course.id} />
           </div>
 
           <div>

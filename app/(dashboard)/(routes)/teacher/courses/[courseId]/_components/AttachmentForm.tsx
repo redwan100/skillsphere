@@ -38,6 +38,21 @@ const AttachmentForm = ({ initialData, courseId }: AttachmentProps) => {
       toast.error("Something went wrong!");
     }
   };
+
+  const onDelete = async (id: string) => {
+    try {
+      setDeletingId(id);
+      await axios.delete(`/api/courses/${courseId}/attachments/${id}`);
+      toast.success("Attachment deleted");
+      router.refresh();
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong!");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="mt-6 rounded-md border bg-slate-100 p-4">
       <div className="flex items-center justify-between font-medium">
@@ -77,7 +92,9 @@ const AttachmentForm = ({ initialData, courseId }: AttachmentProps) => {
           )}
           {deletingId !== attachment.id && (
             <div className="ml-auto">
-              <X className="size-4 text-red-500" />
+              <button onClick={() => onDelete(attachment.id)}>
+                <X className="size-4 cursor-pointer text-sky-500 transition hover:text-sky-600" />
+              </button>
             </div>
           )}
         </div>
