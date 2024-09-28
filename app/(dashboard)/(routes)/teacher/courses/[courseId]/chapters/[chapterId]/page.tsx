@@ -1,9 +1,11 @@
+import Banner from "@/components/banner/Banner";
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { ArrowLeft, Eye, LayoutDashboard, Video } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import ChapterAccessForm from "./_components/ChapterAcccessForm";
+import ChapterActions from "./_components/ChapterActions";
 import ChapterDescriptionForm from "./_components/ChapterDescriptionForm";
 import ChapterTitleForm from "./_components/ChapterTitleForm";
 import ChapterVideoForm from "./_components/ChapterVideoForm";
@@ -38,89 +40,104 @@ const ChapterId = async ({
   const totalFields = requiredFields.length;
   const completedField = requiredFields.filter(Boolean).length;
   const completionText = `(${completedField}/${totalFields})`;
+  const isComplete = requiredFields.every(Boolean);
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between">
-        <div className="w-full">
-          <Link
-            href={`/teacher/courses/${params.courseId}`}
-            className="mb-6 flex items-center text-sm transition hover:opacity-75"
-          >
-            <ArrowLeft className="mr-2 size-4" />
-            Back to course setup
-          </Link>
+    <>
+      {!chapter.isPublished && (
+        <Banner
+          variant={"warning"}
+          label="This chapter is unpublished. It will not be visible in the course"
+        />
+      )}
+      <div className="p-6">
+        <div className="flex items-center justify-between">
+          <div className="w-full">
+            <Link
+              href={`/teacher/courses/${params.courseId}`}
+              className="mb-6 flex items-center text-sm transition hover:opacity-75"
+            >
+              <ArrowLeft className="mr-2 size-4" />
+              Back to course setup
+            </Link>
 
-          <div className="flex w-full items-center justify-between">
-            <div className="flex flex-col gap-y-2">
-              <h1 className="text-2xl font-medium">Chapter Creation</h1>
-              <span className="from-slate-700 text-sm">
-                Complete all fields {completionText}
-              </span>
+            <div className="flex w-full items-center justify-between">
+              <div className="flex flex-col gap-y-2">
+                <h1 className="text-2xl font-medium">Chapter Creation</h1>
+                <span className="from-slate-700 text-sm">
+                  Complete all fields {completionText}
+                </span>
+              </div>
+              <ChapterActions
+                disabled={!isComplete}
+                courseId={params.courseId}
+                chapterId={params.chapterId}
+                isPublished={chapter.isPublished}
+              />
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="space-y-4">
+        <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center gap-x-2">
+                <h2 className="flex items-center gap-x-1 text-xl">
+                  <span className="grid size-8 place-items-center rounded-full bg-blue-100 text-blue-500">
+                    <LayoutDashboard size={18} />
+                  </span>
+                  Customize your chapter
+                </h2>
+              </div>
+              {/* Chapter title form  */}
+              <ChapterTitleForm
+                initialData={chapter}
+                courseId={params.courseId}
+                chapterId={params.chapterId}
+              />
+              <ChapterDescriptionForm
+                initialData={chapter}
+                courseId={params.courseId}
+                chapterId={params.chapterId}
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center gap-x-2">
+                <h2 className="flex items-center gap-x-1 text-xl">
+                  <span className="grid size-8 place-items-center rounded-full bg-blue-100 text-blue-500">
+                    <Eye size={18} />
+                  </span>
+                  Access Setting
+                </h2>
+              </div>
+
+              <ChapterAccessForm
+                initialData={chapter}
+                courseId={params.courseId}
+                chapterId={params.chapterId}
+              />
+            </div>
+          </div>
           <div>
             <div className="flex items-center gap-x-2">
               <h2 className="flex items-center gap-x-1 text-xl">
                 <span className="grid size-8 place-items-center rounded-full bg-blue-100 text-blue-500">
-                  <LayoutDashboard size={18} />
+                  <Video size={18} />
                 </span>
-                Customize your chapter
-              </h2>
-            </div>
-            {/* Chapter title form  */}
-            <ChapterTitleForm
-              initialData={chapter}
-              courseId={params.courseId}
-              chapterId={params.chapterId}
-            />
-            <ChapterDescriptionForm
-              initialData={chapter}
-              courseId={params.courseId}
-              chapterId={params.chapterId}
-            />
-          </div>
-
-          <div>
-            <div className="flex items-center gap-x-2">
-              <h2 className="flex items-center gap-x-1 text-xl">
-                <span className="grid size-8 place-items-center rounded-full bg-blue-100 text-blue-500">
-                  <Eye size={18} />
-                </span>
-                Access Setting
+                Add a video
               </h2>
             </div>
 
-            <ChapterAccessForm
+            <ChapterVideoForm
               initialData={chapter}
               courseId={params.courseId}
               chapterId={params.chapterId}
             />
           </div>
-        </div>
-        <div>
-          <div className="flex items-center gap-x-2">
-            <h2 className="flex items-center gap-x-1 text-xl">
-              <span className="grid size-8 place-items-center rounded-full bg-blue-100 text-blue-500">
-                <Video size={18} />
-              </span>
-              Add a video
-            </h2>
-          </div>
-
-          <ChapterVideoForm
-            initialData={chapter}
-            courseId={params.courseId}
-            chapterId={params.chapterId}
-          />
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -104,3 +104,99 @@ export async function PATCH(
     });
   }
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { courseId: string; chapterId: string } },
+) {
+  try {
+    const { userId } = auth();
+
+    if (!userId) {
+      return new NextResponse("Unauthorized", {
+        status: httpStatus.UNAUTHORIZED,
+      });
+    }
+
+    const ownCourse = await db.course.findUnique({
+      where: {
+        id: params.courseId,
+        userId,
+      },
+    });
+
+    if (!ownCourse) {
+      return new NextResponse("Unauthorized", {
+        status: httpStatus.UNAUTHORIZED,
+      });
+    }
+
+    // First, try to find the chapter
+    const chapter = await db.chapter.findUnique({
+      where: {
+        id: params.chapterId,
+        courseId: params.courseId,
+      },
+    });
+
+    if (!chapter) {
+      return new NextResponse("Chapter not found", {
+        status: httpStatus.NOT_FOUND,
+      });
+    }
+
+    // If chapter exists, proceed with deletion
+    if (chapter.videoUrl) {
+      const existingMuxData = await db.muxData.findFirst({
+        where: {
+          chapterId: params.chapterId,
+        },
+      });
+
+      if (existingMuxData) {
+        await muxClient?.video.assets.delete(existingMuxData.assetId);
+        await db.muxData.delete({
+          where: {
+            id: existingMuxData.id,
+          },
+        });
+      }
+    }
+
+    const deleteChapter = await db.chapter.delete({
+      where: {
+        id: params.chapterId,
+      },
+    });
+
+    const publishedChaptersInCourse = await db.chapter.findMany({
+      where: {
+        courseId: params.courseId,
+        isPublished: true,
+      },
+    });
+
+    if (!publishedChaptersInCourse.length) {
+      await db.course.update({
+        where: {
+          id: params.courseId,
+        },
+        data: {
+          isPublished: false,
+        },
+      });
+    }
+
+    return NextResponse.json(deleteChapter);
+  } catch (error: any) {
+    console.log("[CHAPTER_ID_DELETE]", error);
+    if (error?.code === "P2025") {
+      return new NextResponse("Chapter not found or already deleted", {
+        status: httpStatus.NOT_FOUND,
+      });
+    }
+    return new NextResponse("Internal server error", {
+      status: httpStatus.INTERNAL_SERVER_ERROR,
+    });
+  }
+}
